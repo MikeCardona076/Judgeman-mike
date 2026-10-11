@@ -1,0 +1,4 @@
+# Las dependencias se declaran en pyproject.toml.
+# Este archivo instala el paquete en modo editable junto con las dependencias
+# de desarrollo (pytest, httpx).
+-e .[dev]

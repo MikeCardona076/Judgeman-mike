@@ -1,0 +1,213 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, "Segoe UI", sans-serif;
+  color: #172033;
+  background: #f3f5f9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+.layout {
+  width: min(900px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 52px 0 28px;
+}
+
+.hero {
+  margin-bottom: 28px;
+}
+
+.hero h1 {
+  margin: 8px 0;
+  color: #14213d;
+  font-size: clamp(2.2rem, 6vw, 3.2rem);
+}
+
+.hero > p:last-child,
+.muted,
+footer {
+  color: #647087;
+  line-height: 1.6;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #c06b00;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+}
+
+.panel {
+  margin: 18px 0;
+  padding: 24px;
+  border: 1px solid #e1e6ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgb(20 33 61 / 5%);
+}
+
+.panel h2 {
+  margin: 7px 0 12px;
+  color: #14213d;
+}
+
+.section-heading,
+.form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.status {
+  color: #496b52;
+  font-size: 0.88rem;
+}
+
+.events {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.events li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f6f7fa;
+  font-family: Consolas, monospace;
+  font-size: 0.87rem;
+}
+
+.event-analysis {
+  flex-basis: 100%;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: #34415b;
+  font: 0.9rem/1.6 Inter, "Segoe UI", sans-serif;
+}
+
+.events time {
+  color: #647087;
+  font-family: Inter, "Segoe UI", sans-serif;
+}
+
+label {
+  display: block;
+  margin: 18px 0 8px;
+  font-weight: 650;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 13px;
+  border: 1px solid #cbd3e0;
+  border-radius: 9px;
+  color: #172033;
+  background: #fbfcfe;
+  font: 0.92rem/1.5 Consolas, monospace;
+}
+
+textarea:focus {
+  outline: 3px solid rgb(252 163 17 / 24%);
+  border-color: #c06b00;
+}
+
+.form-footer {
+  margin-top: 12px;
+}
+
+button {
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 8px;
+  color: #14213d;
+  background: #fca311;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #ef970b;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.system-data {
+  margin-top: 16px;
+  border: 1px solid #e1e6ef;
+  border-radius: 8px;
+  background: #f6f7fa;
+}
+
+.system-data summary {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.system-data pre {
+  margin: 0;
+  padding: 0 12px 12px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: #34415b;
+  font: 0.85rem/1.5 Consolas, monospace;
+}
+
+.error {
+  color: #a12828;
+}
+
+.result {
+  margin-top: 22px;
+  padding: 18px;
+  border-left: 4px solid #fca311;
+  border-radius: 6px;
+  background: #f8f9fc;
+}
+
+.result h3 {
+  margin-top: 0;
+}
+
+.result pre {
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font: 0.94rem/1.65 Inter, "Segoe UI", sans-serif;
+}
+
+footer {
+  padding: 10px 2px;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .layout {
+    padding-top: 28px;
+  }
+
+  .panel {
+    padding: 18px;
+  }
+}

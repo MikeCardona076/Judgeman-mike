@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#14213d">
+    <title>Judgman Mike</title>
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <script type="module" src="/static/js/app.js"></script>
+  </head>
+  <body>
+    <main class="layout">
+      <header class="hero">
+        <p class="eyebrow">ASISTENTE LOCAL DE APRENDIZAJE</p>
+        <h1>Judgman Mike</h1>
+        <p>Observa los cambios en la carpeta autorizada y analiza archivos de
+          texto automáticamente. Los reportes son educativos; los archivos no
+          se modifican.</p>
+      </header>
+
+      <section class="panel" aria-labelledby="changes-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MONITOREO DE SOLO LECTURA</p>
+            <h2 id="changes-title">Cambios recientes</h2>
+          </div>
+          <span id="watch-status" class="status">Consultando...</span>
+        </div>
+        <p class="muted">El contenido de texto puede enviarse al proveedor LLM
+          para generar el análisis. Protege la carpeta frente a datos privados.</p>
+        <ul id="events" class="events" aria-live="polite">
+          <li class="muted">Aun no hay cambios detectados.</li>
+        </ul>
+      </section>
+
+      <section class="panel" aria-labelledby="analyze-title">
+        <p class="eyebrow">ANALISIS MANUAL</p>
+        <h2 id="analyze-title">Que quieres entender?</h2>
+        <form id="analyze-form">
+          <label for="code">Pega aqui un fragmento de codigo o un log</label>
+          <textarea id="code" name="code" rows="11" maxlength="40000"
+            required placeholder="Pega solo el texto que quieras enviar al proveedor..."></textarea>
+          <div class="form-footer">
+            <span id="input-count" class="muted">0 / 40000</span>
+            <button id="analyze-button" type="submit">Analizar</button>
+          </div>
+        </form>
+        <p id="error-message" class="error" role="alert" hidden></p>
+        <section id="result-panel" class="result" aria-labelledby="result-title"
+          hidden>
+          <h3 id="result-title">Explicacion</h3>
+          <pre id="analysis-result"></pre>
+        </section>
+      </section>
+
+      <section class="panel" aria-labelledby="system-title">
+        <p class="eyebrow">PREGUNTAS SOBRE EL SISTEMA OPERATIVO</p>
+        <h2 id="system-title">Quieres saber algo de tu sistema?</h2>
+        <p class="muted">Judgman recolecta datos no sensibles de tu maquina de
+          solo lectura y los envia al proveedor para responder. No se ejecutan
+          comandos ni se comparten usuario, hostname ni valores de variables de
+          entorno.</p>
+        <details id="system-data" class="system-data">
+          <summary>Datos del sistema que se enviaran</summary>
+          <pre id="system-snapshot">Consultando...</pre>
+        </details>
+        <form id="system-form">
+          <label for="system-question">Escribe tu pregunta</label>
+          <textarea id="system-question" name="question" rows="4" required
+            placeholder="Por ejemplo: como puedo ver los procesos activos?"></textarea>
+          <div class="form-footer">
+            <span id="question-count" class="muted">0 / 2000</span>
+            <button id="system-button" type="submit">Preguntar</button>
+          </div>
+        </form>
+        <p id="system-error" class="error" role="alert" hidden></p>
+        <section id="system-result-panel" class="result"
+          aria-labelledby="system-result-title" hidden>
+          <h3 id="system-result-title">Respuesta</h3>
+          <pre id="system-result"></pre>
+        </section>
+      </section>
+      <footer>Judgman Mike es una ayuda educativa, no sustituye una revision
+        profesional de seguridad.</footer>
+    </main>
+  </body>
+</html>

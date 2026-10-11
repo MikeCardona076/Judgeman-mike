@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "judgman-mike"
+dynamic = ["version"]
+description = "Agente local pasivo que monitorea archivos y responde dudas tecnicas."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Judgman Mike" }]
+keywords = ["terminal", "chat", "monitor", "llm", "security", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Security",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "fastapi==0.115.12",
+    "litellm==1.72.6",
+    "Pillow==11.2.1",
+    "plyer==2.1.0",
+    "pydantic-settings==2.9.1",
+    "pystray==0.19.5",
+    "python-dotenv==1.1.0",
+    "uvicorn[standard]==0.34.2",
+    "watchdog==6.0.0",
+    "prompt_toolkit>=3.0",
+    "rich>=13.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "httpx>=0.27",
+    "build>=1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/MikeCardona076/Judgeman-mike"
+Repository = "https://github.com/MikeCardona076/Judgeman-mike"
+Issues = "https://github.com/MikeCardona076/Judgeman-mike/issues"
+
+[project.scripts]
+jmike = "judgman.cli:main"
+
+[tool.setuptools]
+packages = ["judgman", "judgman.api", "judgman.core", "judgman.ui"]
+include-package-data = false
+
+[tool.setuptools.dynamic]
+version = { attr = "judgman.__version__" }
+
+[tool.setuptools.package-data]
+"judgman.ui" = ["index.html", "css/*.css", "js/*.js"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
