@@ -133,7 +133,7 @@ macOS/Linux.
    | Variable | Descripcion | Valor por defecto |
    |----------|-------------|-------------------|
    | `JUDGMAN_API_KEY` | Clave del proveedor (obligatoria). | - |
-   | `JUDGMAN_MODEL` | Identificador de modelo aceptado por LiteLLM. | `openai/gpt-4o-mini` |
+   | `JUDGMAN_MODEL` | Modelo de LiteLLM con formato `proveedor/modelo`. | `openai/gpt-4o-mini` |
    | `JUDGMAN_WORKSPACE` | Directorio autorizado a vigilar. | `.` |
    | `JUDGMAN_MAX_FILE_BYTES` | Tamano maximo leido para analisis. | `131072` |
    | `JUDGMAN_PORT` | Puerto de la API local. | `8765` |
@@ -255,3 +255,6 @@ sistema, los endpoints de la API, la sesion de chat y la CLI.
    soporta `pystray`.
 7. **El puerto ya esta en uso.** Cierra la otra instancia o cambia `JUDGMAN_PORT`
    en `.env`.
+8. **`LLM Provider NOT provided`.** El modelo debe incluir el proveedor con el
+   formato `proveedor/modelo` (`deepseek/deepseek-chat`, `openai/gpt-4o-mini`).
+   Ejecuta `jmike config` para volver a configurarlo con el menu guiado.

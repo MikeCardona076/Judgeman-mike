@@ -41,10 +41,17 @@ class Settings(BaseSettings):
 
     @field_validator("model")
     @classmethod
-    def model_must_not_be_blank(cls, value: str) -> str:
-        if not value.strip():
+    def model_must_have_provider(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
             raise ValueError("JUDGMAN_MODEL no puede estar vacío")
-        return value.strip()
+        if "/" not in cleaned:
+            raise ValueError(
+                "JUDGMAN_MODEL debe incluir el proveedor con el formato "
+                "'proveedor/modelo' (por ejemplo 'openai/gpt-4o-mini', "
+                "'deepseek/deepseek-chat' u 'ollama/llama3')"
+            )
+        return cleaned
 
     @field_validator("workspace")
     @classmethod

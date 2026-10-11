@@ -15,6 +15,7 @@ from judgman.cli import (
     stream_to_console,
 )
 from judgman.core.chat import ChatSession
+from judgman.theme import THEME
 
 
 class FakeAnalyzer:
@@ -24,7 +25,12 @@ class FakeAnalyzer:
 
 
 def make_console() -> Console:
-    return Console(file=io.StringIO(), force_terminal=False, width=80)
+    return Console(
+        file=io.StringIO(),
+        force_terminal=False,
+        width=80,
+        theme=THEME,
+    )
 
 
 def make_session(workspace: Path) -> ChatSession:

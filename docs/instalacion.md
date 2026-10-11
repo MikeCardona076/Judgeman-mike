@@ -31,9 +31,12 @@ Ejecuta el chat:
 jmike
 ```
 
-Si no hay configuracion, se lanza un asistente que pide la API key, el modelo y
-la carpeta a vigilar. Los valores se guardan en el archivo de configuracion del
-usuario:
+Si no hay configuracion, se lanza un asistente con un menu de proveedores
+(OpenAI, Anthropic, DeepSeek, Gemini, Groq, OpenRouter, Ollama u otro). El
+asistente normaliza el modelo al formato `proveedor/modelo` que exige LiteLLM,
+prueba la conexion y recien entonces guarda la API key, el modelo y la carpeta a
+vigilar. Si estas dentro de un entorno virtual, propone la carpeta padre como
+workspace. Los valores se guardan en el archivo de configuracion del usuario:
 
 - Windows: `%APPDATA%\judgman\config.env`
 - macOS/Linux: `~/.config/judgman/config.env` (o `$XDG_CONFIG_HOME/judgman/config.env`)

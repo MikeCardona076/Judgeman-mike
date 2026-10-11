@@ -26,6 +26,7 @@ from judgman.core.analyzer import Analyzer
 from judgman.core.chat import ChatSession
 from judgman.core.files import FileSkipped
 from judgman.onboarding import run_onboarding
+from judgman.theme import BANNER, make_console, prompt_style
 
 CHAT_COMMANDS = [
     "/help",
@@ -93,15 +94,17 @@ def resolve_settings(args: argparse.Namespace, console: Console) -> Settings:
     if args.workspace is not None:
         overrides["workspace"] = args.workspace
 
+    fixable = {"api_key", "model", "workspace"}
     try:
         return load_settings(**overrides)
     except ValidationError as exc:
-        if missing_fields(exc) != {"api_key"}:
+        invalid = missing_fields(exc)
+        if not invalid or not invalid <= fixable:
             raise
         if not sys.stdin.isatty():
             console.print(
-                "[red]Falta JUDGMAN_API_KEY.[/red] Ejecuta 'jmike config' en una "
-                "terminal interactiva o crea un archivo .env."
+                "[jmike.err]La configuracion esta incompleta o es invalida.[/jmike.err] "
+                "Ejecuta 'jmike config' en una terminal interactiva o revisa el .env."
             )
             raise SystemExit(1) from exc
         settings = run_onboarding(console)
@@ -121,13 +124,28 @@ def build_session(settings: Settings) -> ChatSession:
     )
 
 
-def stream_to_console(console: Console, chunks) -> str:
-    collected: list[str] = []
-    for chunk in chunks:
-        collected.append(chunk)
-        console.print(chunk, end="", markup=False, highlight=False)
-    console.print()
-    return "".join(collected)
+def stream_to_console(
+    console: Console,
+    chunks,
+    status_text: str = "pensando",
+) -> str:
+    """Muestra un estado mientras espera y luego imprime token a token."""
+    iterator = iter(chunks)
+    with console.status(f"[jmike.violet]{status_text}...[/jmike.violet]", spinner="dots"):
+        try:
+            first = next(iterator)
+        except StopIteration:
+            first = None
+
+    parts: list[str] = []
+    if first:
+        parts.append(first)
+        console.print(first, end="")
+    for chunk in iterator:
+        parts.append(chunk)
+        console.print(chunk, end="")
+    console.print("")
+    return "".join(parts)
 
 
 def print_snapshot(console: Console, session: ChatSession) -> None:
@@ -135,31 +153,8 @@ def print_snapshot(console: Console, session: ChatSession) -> None:
         Panel(
             session.snapshot_text(),
             title="Datos del sistema que se enviarian",
-            border_style="cyan",
+            border_style="jmike.violet",
         )
-    )
-
-
-def reconfigure(console: Console, session: ChatSession) -> None:
-    settings = run_onboarding(console)
-    session.reconfigure(
-        model=settings.model,
-        api_key=settings.api_key.get_secret_value(),
-        workspace=settings.workspace,
-    )
-    console.print("[green]Ajustes actualizados.[/green]")
-
-
-def launch_serve(console: Console) -> None:
-    try:
-        settings = load_settings()
-    except Exception as exc:
-        console.print(f"[red]Configuracion invalida:[/red] {exc}")
-        return
-    subprocess.Popen([sys.executable, "-m", "judgman", "serve"])
-    console.print(
-        f"[green]Monitor iniciado en[/green] "
-        f"http://{settings.host}:{settings.port}"
     )
 
 
@@ -176,13 +171,15 @@ def handle_command(
     if name in ("/exit", "/quit"):
         return False
     if name == "/help":
-        console.print(Panel(HELP_TEXT, title="Judgman Mike", border_style="cyan"))
+        console.print(
+            Panel(HELP_TEXT, title="Judgman Mike", border_style="jmike.accent")
+        )
     elif name == "/system":
         session.set_mode("system")
-        console.print("[green]Modo sistema activado.[/green]")
+        console.print("[jmike.ok]Modo sistema activado.[/jmike.ok]")
     elif name == "/code":
         session.set_mode("code")
-        console.print("[green]Modo codigo activado.[/green]")
+        console.print("[jmike.ok]Modo codigo activado.[/jmike.ok]")
     elif name == "/snapshot":
         print_snapshot(console, session)
     elif name == "/serve":
@@ -191,14 +188,14 @@ def handle_command(
         reconfigure(console, session)
     elif name == "/clear":
         session.clear()
-        console.print("[green]Historial borrado.[/green]")
+        console.print("[jmike.ok]Historial borrado.[/jmike.ok]")
     elif name == "/file":
         if not argument:
-            console.print("[yellow]Uso: /file <ruta>[/yellow]")
+            console.print("[jmike.warn]Uso: /file <ruta>[/jmike.warn]")
         else:
             analyze_file(console, session, argument)
     else:
-        console.print(f"[yellow]Comando desconocido: {name}[/yellow]")
+        console.print(f"[jmike.warn]Comando desconocido: {name}[/jmike.warn]")
     return True
 
 
@@ -206,7 +203,7 @@ def analyze_file(console: Console, session: ChatSession, raw_path: str) -> str:
     try:
         relative, content = session.read_file(raw_path)
     except (PermissionError, ValueError, FileSkipped, UnicodeError, OSError) as exc:
-        console.print(f"[red]No se pudo leer el archivo:[/red] {exc}")
+        console.print(f"[jmike.err]No se pudo leer el archivo:[/jmike.err] {exc}")
         return ""
 
     prompt = (
@@ -215,6 +212,29 @@ def analyze_file(console: Console, session: ChatSession, raw_path: str) -> str:
         f"{content}"
     )
     return stream_to_console(console, session.stream_reply(prompt, mode="code"))
+
+
+def reconfigure(console: Console, session: ChatSession) -> None:
+    settings = run_onboarding(console)
+    session.reconfigure(
+        model=settings.model,
+        api_key=settings.api_key.get_secret_value(),
+        workspace=settings.workspace,
+    )
+    console.print("[jmike.ok]Ajustes actualizados.[/jmike.ok]")
+
+
+def launch_serve(console: Console) -> None:
+    try:
+        settings = load_settings()
+    except Exception as exc:
+        console.print(f"[jmike.err]Configuracion invalida:[/jmike.err] {exc}")
+        return
+    subprocess.Popen([sys.executable, "-m", "judgman", "serve"])
+    console.print(
+        f"[jmike.ok]Monitor iniciado en[/jmike.ok] "
+        f"http://{settings.host}:{settings.port}"
+    )
 
 
 class _PlainPrompt:
@@ -230,6 +250,8 @@ def _default_prompt_session() -> PromptSession | _PlainPrompt:
             history=InMemoryHistory(),
             completer=WordCompleter(CHAT_COMMANDS, ignore_case=True),
             complete_while_typing=True,
+            style=prompt_style(),
+            message=[("class:prompt", "jmike > ")],
         )
     return _PlainPrompt()
 
@@ -239,23 +261,25 @@ def run_chat(
     console: Console | None = None,
     prompt_session: PromptSession | _PlainPrompt | None = None,
 ) -> None:
-    console = console or Console()
+    console = console or make_console()
     if prompt_session is None:
         prompt_session = _default_prompt_session()
 
+    console.print(BANNER, style="jmike.accent")
     console.print(
         Panel(
-            "Chat local de Judgman Mike. Escribe /help para ver los comandos.",
-            border_style="cyan",
+            f"Chat local de Judgman Mike. Modo [jmike.violet]{session.mode}[/jmike.violet]. "
+            "Escribe /help para ver los comandos.",
+            border_style="jmike.accent",
         )
     )
     while True:
         try:
-            line = prompt_session.prompt("jmike> ")
+            line = prompt_session.prompt("jmike > ")
         except KeyboardInterrupt:
             continue
         except EOFError:
-            console.print("\nHasta luego.")
+            console.print("\n[jmike.dim]Hasta luego.[/jmike.dim]")
             return
 
         line = line.strip()
@@ -263,20 +287,25 @@ def run_chat(
             continue
         if line.startswith("/"):
             if not handle_command(console, session, line):
-                console.print("Hasta luego.")
+                console.print("[jmike.dim]Hasta luego.[/jmike.dim]")
                 return
             continue
 
         try:
             stream_to_console(console, session.stream_reply(line))
         except Exception as exc:  # pragma: no cover - depende del proveedor
-            console.print(f"[red]Error del proveedor:[/red] {exc}")
+            console.print(f"[jmike.err]Error del proveedor:[/jmike.err] {exc}")
+            console.print(
+                "[jmike.dim]Revisa el modelo con '/settings'. Debe tener el "
+                "formato proveedor/modelo, por ejemplo 'deepseek/deepseek-chat'."
+                "[/jmike.dim]"
+            )
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
-    console = Console()
+    console = make_console()
 
     command = args.command or "chat"
     if command == "config":
@@ -287,8 +316,8 @@ def main(argv: list[str] | None = None) -> None:
         settings = resolve_settings(args, console)
     except Exception as exc:
         console.print(
-            f"[red]Configuracion invalida.[/red] Crea un archivo .env valido "
-            f"({exc})"
+            f"[jmike.err]Configuracion invalida.[/jmike.err] Crea un archivo "
+            f".env valido ({exc})"
         )
         raise SystemExit(1) from exc
 
@@ -298,7 +327,7 @@ def main(argv: list[str] | None = None) -> None:
         try:
             serve(settings)
         except Exception as exc:  # pragma: no cover - arranque del servidor
-            console.print(f"[red]No se pudo iniciar el monitor:[/red] {exc}")
+            console.print(f"[jmike.err]No se pudo iniciar el monitor:[/jmike.err] {exc}")
             raise SystemExit(1)
         return
 
@@ -312,7 +341,7 @@ def main(argv: list[str] | None = None) -> None:
         else:
             run_chat(session, console)
     except KeyboardInterrupt:  # pragma: no cover - interaccion de usuario
-        console.print("\nHasta luego.")
+        console.print("\n[jmike.dim]Hasta luego.[/jmike.dim]")
 
 
 if __name__ == "__main__":  # pragma: no cover
