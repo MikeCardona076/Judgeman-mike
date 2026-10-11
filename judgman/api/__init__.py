@@ -1,1 +1,1 @@
-"""API local de Judgman Mike."""
+"""API local de JudgeMan-Mike."""

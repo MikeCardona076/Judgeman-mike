@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="JudgeMan-Mike">
+  <defs>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="55%" stop-color="#0a84ff"/>
+      <stop offset="100%" stop-color="#b967ff"/>
+    </linearGradient>
+    <linearGradient id="scan" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff2fd6" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#ff2fd6" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#ff2fd6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="96" fill="#05070a"/>
+
+  <!-- rejilla TRON -->
+  <g stroke="#12283c" stroke-width="2" opacity="0.7">
+    <path d="M0 128H512M0 256H512M0 384H512"/>
+    <path d="M128 0V512M256 0V512M384 0V512"/>
+  </g>
+
+  <!-- hexagono de escaneo -->
+  <path d="M256 40 L430 140 V372 L256 472 L82 372 V140 Z"
+        fill="#070b12" stroke="url(#ring)" stroke-width="14" stroke-linejoin="round"/>
+
+  <!-- linea de escaneo -->
+  <rect x="96" y="236" width="320" height="40" fill="url(#scan)"/>
+
+  <!-- monograma J M -->
+  <g fill="none" stroke="#00e5ff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M168 150 V300 a38 38 0 0 1 -76 0"/>
+    <path d="M256 150 L256 330 M256 150 L306 240 L356 150 L356 330"/>
+  </g>
+
+  <!-- punto de estado -->
+  <circle cx="392" cy="120" r="20" fill="#ffd23f"/>
+</svg>

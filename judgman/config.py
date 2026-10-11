@@ -1,5 +1,5 @@
 # judgman/config.py
-"""Carga y valida la configuracion de Judgman-Mike.
+"""Carga y valida la configuracion de JudgeMan-Mike.
 
 Precedencia (de mayor a menor): argumentos de CLI, variables de entorno,
 archivo ``.env`` del directorio actual, archivo de configuracion del usuario y

@@ -43,6 +43,15 @@ body {
   margin-bottom: 28px;
 }
 
+.hero-logo {
+  display: block;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 14px;
+  border-radius: 16px;
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.35);
+}
+
 .hero h1 {
   margin: 8px 0;
   color: #fff;

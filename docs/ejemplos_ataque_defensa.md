@@ -1,6 +1,6 @@
-# Como interpretar las advertencias de Judgman
+# Como interpretar las advertencias de JudgeMan-Mike
 
-Judgman vigila en modo pasivo los archivos de la carpeta de trabajo seleccionada.
+JudgeMan-Mike vigila en modo pasivo los archivos de la carpeta de trabajo seleccionada.
 No certifica que el sistema o un programa sean seguros: el analizador puede
 equivocarse, omitir contexto o describir un riesgo hipotetico.
 

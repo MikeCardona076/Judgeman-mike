@@ -1,6 +1,7 @@
 import logging
 import threading
 import webbrowser
+from pathlib import Path
 
 import pystray
 import uvicorn
@@ -14,12 +15,20 @@ from judgman.core.scanner import ReadOnlyScanner
 
 logger = logging.getLogger("judgman")
 
+_LOGO_PATH = Path(__file__).with_name("ui") / "logo.png"
+
 
 def _tray_image() -> Image.Image:
-    image = Image.new("RGB", (64, 64), "#14213d")
+    """Icono de bandeja: usa el logo si esta disponible, si no lo dibuja."""
+    if _LOGO_PATH.is_file():
+        try:
+            return Image.open(_LOGO_PATH).convert("RGBA").resize((64, 64))
+        except OSError:  # pragma: no cover - defensivo
+            logger.debug("No se pudo cargar el logo, se dibuja el icono.")
+    image = Image.new("RGB", (64, 64), "#05070a")
     draw = ImageDraw.Draw(image)
-    draw.ellipse((12, 12, 52, 52), fill="#fca311")
-    draw.text((25, 21), "J", fill="#14213d")
+    draw.ellipse((12, 12, 52, 52), outline="#00e5ff", width=3)
+    draw.text((25, 21), "J", fill="#00e5ff")
     return image
 
 
@@ -56,7 +65,7 @@ def serve(settings: Settings | None = None) -> None:
     scanner.start()
     observer.start()
     server_thread.start()
-    logger.info("Judgman Mike disponible en http://%s:%s", settings.host, settings.port)
+    logger.info("JudgeMan-Mike disponible en http://%s:%s", settings.host, settings.port)
     webbrowser.open(f"http://{settings.host}:{settings.port}")
 
     def open_app(_icon: pystray.Icon, _item: pystray.MenuItem) -> None:
@@ -70,9 +79,9 @@ def serve(settings: Settings | None = None) -> None:
     icon = pystray.Icon(
         "judgman-mike",
         _tray_image(),
-        "Judgman Mike",
+        "JudgeMan-Mike",
         menu=pystray.Menu(
-            pystray.MenuItem("Abrir Judgman", open_app),
+            pystray.MenuItem("Abrir JudgeMan-Mike", open_app),
             pystray.MenuItem("Salir", stop_app),
         ),
     )

@@ -1,1 +1,1 @@
-"""Recursos estaticos de la interfaz web de Judgman Mike."""
+"""Recursos estaticos de la interfaz web de JudgeMan-Mike."""

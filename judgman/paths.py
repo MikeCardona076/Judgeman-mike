@@ -32,3 +32,13 @@ def user_config_dir(
 def user_config_path() -> Path:
     """Ruta del archivo ``config.env`` del usuario."""
     return user_config_dir() / _CONFIG_FILE_NAME
+
+
+def user_history_path() -> Path:
+    """Ruta del historial de entrada persistente del usuario."""
+    return user_config_dir() / "history"
+
+
+def user_audit_path() -> Path:
+    """Ruta del registro de auditoria de acciones ejecutadas."""
+    return user_config_dir() / "audit.log"

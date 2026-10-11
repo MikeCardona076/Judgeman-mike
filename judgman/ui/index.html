@@ -4,18 +4,20 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0a0a0f">
-    <title>Judgman Mike</title>
+    <title>JudgeMan-Mike</title>
+    <link rel="icon" type="image/png" href="/static/logo.png">
     <link rel="stylesheet" href="/static/css/custom.css">
     <script type="module" src="/static/js/app.js"></script>
   </head>
   <body>
     <main class="layout">
       <header class="hero">
-        <p class="eyebrow">ASISTENTE LOCAL DE APRENDIZAJE</p>
-        <h1>Judgman Mike</h1>
-        <p>Observa los cambios en la carpeta autorizada y analiza archivos de
-          texto automáticamente. Los reportes son educativos; los archivos no
-          se modifican.</p>
+        <img class="hero-logo" src="/static/logo.png" alt="JudgeMan-Mike" width="72" height="72">
+        <p class="eyebrow">DIAGNÓSTICO Y SEGURIDAD LOCAL</p>
+        <h1>JudgeMan-Mike</h1>
+        <p>Diagnóstico y seguridad en modo solo lectura. Reúne evidencia del equipo,
+          interpreta la causa probable y solo propone acciones con confirmación
+          explícita y registro de auditoría.</p>
       </header>
 
       <section class="panel" aria-labelledby="changes-title">
@@ -26,8 +28,9 @@
           </div>
           <span id="watch-status" class="status">Consultando...</span>
         </div>
-        <p class="muted">El contenido de texto puede enviarse al proveedor LLM
-          para generar el análisis. Protege la carpeta frente a datos privados.</p>
+        <p class="muted">El scanner observa la carpeta autorizada sin modificar archivos.
+          El contenido puede enviarse al proveedor LLM para análisis; protege datos
+          privados.</p>
         <ul id="events" class="events" aria-live="polite">
           <li class="muted">Aun no hay cambios detectados.</li>
         </ul>
@@ -35,9 +38,9 @@
 
       <section class="panel" aria-labelledby="analyze-title">
         <p class="eyebrow">ANALISIS MANUAL</p>
-        <h2 id="analyze-title">Que quieres entender?</h2>
+        <h2 id="analyze-title">Analizar archivo o fragmento</h2>
         <form id="analyze-form">
-          <label for="code">Pega aqui un fragmento de codigo o un log</label>
+          <label for="code">Pega un fragmento (código, log o texto)</label>
           <textarea id="code" name="code" rows="11" maxlength="40000"
             required placeholder="Pega solo el texto que quieras enviar al proveedor..."></textarea>
           <div class="form-footer">
@@ -55,11 +58,10 @@
 
       <section class="panel" aria-labelledby="system-title">
         <p class="eyebrow">PREGUNTAS SOBRE EL SISTEMA OPERATIVO</p>
-        <h2 id="system-title">Quieres saber algo de tu sistema?</h2>
-        <p class="muted">Judgman recolecta datos no sensibles de tu maquina de
-          solo lectura y los envia al proveedor para responder. No se ejecutan
-          comandos ni se comparten usuario, hostname ni valores de variables de
-          entorno.</p>
+        <h2 id="system-title">Diagnóstico del sistema</h2>
+        <p class="muted">JudgeMan-Mike recoge datos no sensibles de solo lectura
+          (puertos, procesos, conexiones, servicios, arranque, firewall, hosts) para
+          diagnosticar el problema. No ejecuta comandos del sistema.</p>
         <details id="system-data" class="system-data">
           <summary>Datos del sistema que se enviaran</summary>
           <pre id="system-snapshot">Consultando...</pre>
@@ -80,8 +82,8 @@
           <pre id="system-result"></pre>
         </section>
       </section>
-      <footer>Judgman Mike es una ayuda educativa, no sustituye una revision
-        profesional de seguridad.</footer>
+      <footer>JudgeMan-Mike: diagnóstico y seguridad local con confirmación y auditoría.
+        Core MIT · futuro Pro (próximamente).</footer>
     </main>
   </body>
 </html>

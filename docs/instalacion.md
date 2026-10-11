@@ -49,6 +49,10 @@ proyecto.
 - `jmike config` vuelve a lanzar el asistente.
 - Dentro del chat, `/settings` reconfigura sin salir y `/snapshot` muestra los
   datos del sistema que se enviarian.
+- `/diagnostics` muestra la evidencia de diagnostico que se enviaria al modelo;
+  las acciones aprobadas quedan registradas en `audit.log` junto a `config.env`.
+- Para los gauges en vivo de la consola Tron instala el extra `monitor`
+  (`pipx install "judgman-mike[monitor] @ git+https://github.com/MikeCardona076/Judgeman-mike.git"`).
 
 ## Precedencia de la configuracion
 

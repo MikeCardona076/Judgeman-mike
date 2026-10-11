@@ -181,7 +181,7 @@ def run_onboarding(
     console = console or make_console()
     target = path or user_config_path()
     console.print(
-        Panel(_INTRO, title="Judgman Mike", border_style="jmike.accent")
+        Panel(_INTRO, title="JudgeMan-Mike", border_style="jmike.accent")
     )
 
     provider = _choose_provider(console)

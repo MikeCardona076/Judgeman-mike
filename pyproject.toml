@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "judgman-mike"
 dynamic = ["version"]
-description = "Agente local pasivo que monitorea archivos y responde dudas tecnicas."
+description = "Agente local de diagnostico y seguridad que inspecciona tu equipo y te ayuda a repararlo."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Judgman Mike" }]
-keywords = ["terminal", "chat", "monitor", "llm", "security", "cli"]
+authors = [{ name = "JudgeMan-Mike" }]
+keywords = ["terminal", "chat", "diagnostico", "security", "llm", "cli", "puertos"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
@@ -39,6 +39,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+monitor = [
+    "psutil>=5.9",
+]
 dev = [
     "pytest==8.3.5",
     "httpx>=0.27",
@@ -61,7 +64,7 @@ include-package-data = false
 version = { attr = "judgman.__version__" }
 
 [tool.setuptools.package-data]
-"judgman.ui" = ["index.html", "css/*.css", "js/*.js"]
+"judgman.ui" = ["index.html", "logo.png", "css/*.css", "js/*.js"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

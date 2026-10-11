@@ -37,8 +37,8 @@ def create_app(
     analyzer: Analyzer | None = None,
 ) -> FastAPI:
     app = FastAPI(
-        title="Judgman Mike",
-        description="API local de solo lectura para aprendizaje de codigo.",
+        title="JudgeMan-Mike",
+        description="API local de solo lectura para diagnostico y seguridad.",
         docs_url=None,
         redoc_url=None,
     )

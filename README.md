@@ -1,11 +1,25 @@
-# Judgman Mike
+<p align="center">
+  <img src="docs/assets/logo-256.png" alt="JudgeMan-Mike" width="160">
+</p>
 
-Judgman Mike es un agente pasivo de monitoreo del sistema de archivos para
-desarrolladores y estudiantes. Vigila recursivamente una carpeta autorizada,
-analiza automaticamente los archivos de texto creados o modificados y presenta
-reportes pedagogicos en la interfaz local. Se instala como el comando `jmike` y
-ofrece dos modos: un **chat interactivo en la terminal** (por defecto) y el
-**monitor** con interfaz web.
+# JudgeMan-Mike
+
+JudgeMan-Mike es un agente local de **diagnóstico y seguridad** para tu equipo.
+Le cuentas que algo no funciona (un puerto ocupado o bloqueado, un proceso raro,
+un servicio caído, un archivo sospechoso) y JudgeMan-Mike reúne la evidencia disponible
+en modo **solo lectura**, la interpreta y te explica la causa probable. Cuando la
+solución requiere cambiar algo, te propone la acción exacta y **solo la ejecuta
+si tú la apruebas**, dejando un registro de auditoría. No es un tutorial: es una
+herramienta para resolver problemas. Se instala como el comando `jmike` y ofrece
+una **consola interactiva en la terminal** (por defecto) y un **monitor** con
+interfaz web.
+
+## Documentación
+
+- [Instalación](docs/instalacion.md) · [Arquitectura](docs/arquitectura.md) · [Modos](docs/modos.md)
+- [Diagnóstico](docs/diagnostico.md) · [Acciones](docs/acciones.md) · [Consola Tron](docs/consola-tron.md)
+- [Seguridad y privacidad](docs/seguridad-y-privacidad.md) · [Capturas](docs/capturas.md)
+- [FAQ](docs/faq.md) · [Desarrollo](docs/desarrollo.md) · [Roadmap](docs/roadmap.md)
 
 ## Instalar en un comando
 
@@ -53,18 +67,25 @@ Orden de precedencia de la configuracion (de mayor a menor):
 
 ## Filosofia y seguridad
 
-- El scanner solo escucha eventos `created` y `modified`. Puede leer archivos
-  de texto para analizarlos, pero nunca escribe, renombra ni elimina archivos.
-- El contenido de texto permitido se envia automaticamente al proveedor
-  configurado con LiteLLM. No selecciones una carpeta que contenga material
-  privado que no quieras enviar a ese proveedor.
-- Archivos binarios, archivos mayores que `JUDGMAN_MAX_FILE_BYTES` y nombres o
-  directorios habituales de credenciales se excluyen del analisis.
-- Las rutas del workspace se resuelven y validan, incluidos los enlaces
-  simbolicos, antes de leer los archivos observados.
-- El servidor escucha unicamente en `127.0.0.1`; la API no habilita CORS.
-- La explicacion del modelo es material educativo, no una auditoria de seguridad
-  ni una instruccion para ejecutar codigo.
+- **Solo lectura por defecto.** El diagnostico (puertos, procesos, conexiones,
+  servicios, arranque, firewall, `hosts`) usa `psutil` y comandos del sistema de
+  solo lectura ejecutados sin shell. Nada se modifica sin tu aprobacion.
+- **Reparacion con confirmacion.** El modelo nunca ejecuta comandos libres: solo
+  puede proponer acciones de un catalogo cerrado. Cada accion se muestra con su
+  comando y su riesgo y requiere una confirmacion explicita antes de ejecutarse.
+- **Auditoria.** Toda accion propuesta, confirmada, rechazada o fallida se
+  registra en `%APPDATA%\judgman\audit.log` (o `~/.config/judgman/audit.log`).
+- **Privacidad.** El diagnostico puede contener rutas, usuarios o IPs. Antes de
+  enviarlo al proveedor se redactan la carpeta personal y el nombre de usuario, y
+  se acota el texto. Usa `/diagnostics` para ver exactamente que se enviaria.
+- El scanner web sigue siendo pasivo: escucha eventos `created` y `modified` y
+  nunca escribe, renombra ni elimina archivos.
+- El contenido de texto puede enviarse al proveedor LLM configurado. Protege la
+  carpeta frente a datos privados que no quieras enviar.
+- Nunca se siguen instrucciones encontradas dentro de archivos o datos: se tratan
+  como datos no confiables.
+- El servidor del monitor escucha unicamente en `127.0.0.1`; la API no habilita
+  CORS.
 
 ## Requisitos previos
 
@@ -189,29 +210,91 @@ jmike analyze .\notas.txt
 ```
 
 Opciones globales: `--model` y `--workspace` sobrescriben `JUDGMAN_MODEL` y
-`JUDGMAN_WORKSPACE` solo para esa ejecucion.
+`JUDGMAN_WORKSPACE` solo para esa ejecucion; `--plain` fuerza la consola simple
+(sin TUI a pantalla completa) y `--no-color` desactiva el color.
 
 Comandos dentro del chat:
 
 | Comando | Descripcion |
 |---------|-------------|
-| `/help` | Muestra la ayuda. |
-| `/system` | Modo preguntas sobre el sistema operativo. |
-| `/code` | Modo preguntas de codigo o generales. |
-| `/file <ruta>` | Analiza un archivo dentro del workspace. |
-| `/snapshot` | Muestra los datos del sistema que se enviarian. |
+| `/help` | Muestra la tabla de comandos. |
+| `/status` | Muestra modelo, workspace y modo. |
+| `/diagnose <pregunta>` | Diagnostica un problema del equipo. |
+| `/security <texto>` | Busca amenazas en el texto o en el contexto. |
+| `/file <ruta>` | Analiza un archivo del workspace (autocompleta rutas). |
+| `/mode` | Cambia el modo (`/mode diagnose`, `security` o `file`). |
+| `/diagnostics` | Muestra los datos de diagnostico que se enviarian. |
+| `/ports` | Lista los puertos a la escucha con su PID y proceso. |
+| `/port <n>` | Diagnostica un puerto concreto (ocupado, escuchando, cerrado). |
+| `/procs` | Procesos con mas carga (CPU/RAM). |
+| `/connections` | Conexiones salientes establecidas. |
+| `/services` | Servicios detenidos o relevantes. |
+| `/startup` | Programas de arranque automatico. |
+| `/firewall` | Estado del firewall. |
+| `/hosts` | Archivo `hosts`, DNS y proxy. |
+| `/apply <n>` | Ejecuta una accion propuesta (`/apply all` para todas). |
+| `/snapshot` | Datos basicos del sistema que se enviarian. |
 | `/serve` | Inicia el monitor web en segundo plano. |
 | `/settings` | Reconfigura la API key, el modelo o el workspace. |
-| `/clear` | Borra el historial de la conversacion. |
+| `/retry` | Repite la ultima pregunta. |
+| `/clear` , `/new` | Borra el historial y limpia la pantalla. |
 | `/exit` , `/quit` | Sale del chat. |
 
-Las respuestas se muestran en streaming. Cada consulta se envia al proveedor
-configurado, igual que el resto de funciones.
+Las respuestas se transmiten token a token. El historial de entrada se guarda en
+el directorio de configuracion del usuario.
 
-## Preguntas sobre el sistema
+## Diagnosticar y reparar
+
+Tres modos orientan al agente:
+
+- **diagnose** (por defecto): reune puertos, procesos, conexiones, servicios,
+  arranque, firewall y `hosts`, e interpreta tu problema (por ejemplo *"el puerto
+  3000 no responde"* o *"algo consume toda la CPU"*).
+- **security**: caza amenazas combinando el snapshot del sistema con el resumen de
+  red, y analiza contenido de archivos que pegues o abras con `/file`.
+- **file**: analiza el contenido de un archivo concreto del workspace.
+
+Flujo de reparacion:
+
+1. Preguntas o describes el problema.
+2. JudgeMan-Mike diagnostica y, si hace falta, propone acciones (por ejemplo terminar un
+   proceso, abrir/cerrar un puerto en el firewall, reiniciar un servicio).
+3. Las acciones aparecen listadas con su comando y su nivel de riesgo.
+4. Ejecutas `/apply <n>`; la consola muestra el comando exacto y pide `y/N`.
+5. La ejecucion (y su resultado) queda en el log de auditoria.
+
+Nota honesta sobre puertos: JudgeMan-Mike distingue "nada escucha en ese puerto" (el
+servicio no corre o usa otro puerto) de "algo escucha pero no llega trafico"
+(probable firewall). No afirma una causa que no pueda sustentar con evidencia.
+
+### Consola Tron (pantalla completa)
+
+![Consola Tron de JudgeMan-Mike](docs/screenshots/hero.gif)
+
+Cuando `jmike` corre en una terminal interactiva abre una consola a pantalla
+completa inspirada en eDEX-UI / TRON: un HUD fijo arriba con el reloj y gauges de
+**CPU / RAM / disco** en vivo, la conversacion en el centro (Markdown y resaltado
+de terminos de riesgo) y una barra de estado abajo con modelo y workspace.
+
+- Los gauges en vivo requieren el extra opcional **`monitor`** (usa `psutil`):
+
+  ```powershell
+  pipx install "judgman-mike[monitor] @ git+https://github.com/MikeCardona076/Judgeman-mike.git"
+  ```
+
+  Sin `psutil` degrada a RAM/disco aproximados desde el snapshot e informa en el
+  encabezado.
+- Atajos: `Enter` envia, `Alt+Enter` inserta salto de linea, `Ctrl+L` limpia,
+  `PageUp`/`PageDown`, `Home`/`End` (o `Ctrl+Home`/`Ctrl+End`) y la rueda del
+  raton desplazan la conversacion, `Ctrl+C` cancela la linea o la respuesta en
+  curso, `Ctrl+D` sale.
+- Sin terminal interactiva (o con `--plain`) se usa la consola simple en linea.
+
+## Preguntas sobre el sistema (monitor web)
 
 El panel **Preguntas sobre el sistema operativo** (paso 9) permite consultar
-dudas sobre tu maquina. Para responder, Judgman recolecta un conjunto de datos
+dudas sobre tu maquina desde el monitor web. Para responder, JudgeMan-Mike recolecta un
+conjunto de datos
 benignos de solo lectura (version y arquitectura del SO, version de Python,
 numero de CPUs, memoria, uso de disco del workspace, zona horaria, nombres de
 variables de entorno y nombres de ejecutables del PATH) y los envia al proveedor
@@ -234,7 +317,10 @@ python -m pytest
 
 Las pruebas cubren el confinamiento de rutas, enlaces simbolicos, el
 comportamiento de lectura exclusiva del scanner, la recoleccion de datos del
-sistema, los endpoints de la API, la sesion de chat y la CLI.
+sistema y de diagnostico (puertos, servicios, firewall), el catalogo de acciones
+y su ejecucion con confirmacion y auditoria, los endpoints de la API, la sesion
+de chat, la CLI, el tema y la consola Tron, y el muestreo de metricas (con y sin
+`psutil`).
 
 ## Solucion de problemas
 
