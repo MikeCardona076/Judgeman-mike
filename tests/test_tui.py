@@ -97,6 +97,56 @@ def test_console_unknown_command_does_not_crash(tmp_path: Path) -> None:
     assert "desconocido" in "\n".join(console._lines)
 
 
+def test_console_update_run_cancel(tmp_path: Path, monkeypatch) -> None:
+    import judgman.updates as updates
+
+    monkeypatch.setattr(
+        updates,
+        "check_for_update",
+        lambda *a, **k: updates.UpdateInfo("0.1.0", "0.2.0", True),
+    )
+    console = make_console(tmp_path)
+
+    console._handle_command("/update --run")
+    assert console._pending_update is True
+
+    console._resolve_update("n")
+
+    assert console._pending_update is False
+    assert "cancelada" in "\n".join(console._lines).lower()
+
+
+def test_console_update_run_executes(tmp_path: Path, monkeypatch) -> None:
+    import time
+
+    import judgman.updates as updates
+
+    monkeypatch.setattr(
+        updates,
+        "check_for_update",
+        lambda *a, **k: updates.UpdateInfo("0.1.0", "0.2.0", True),
+    )
+    calls = {"n": 0}
+
+    def fake_perform(*_args, **_kwargs):
+        calls["n"] += 1
+        return True, "ok"
+
+    monkeypatch.setattr(updates, "perform_update", fake_perform)
+    console = make_console(tmp_path)
+
+    console._handle_command("/update --run")
+    console._resolve_update("y")
+
+    for _ in range(100):
+        if calls["n"]:
+            break
+        time.sleep(0.02)
+
+    assert calls["n"] == 1
+    assert "actualizado" in "\n".join(console._lines).lower()
+
+
 def test_console_exit_command_is_safe_without_app(tmp_path: Path) -> None:
     console = make_console(tmp_path)
 

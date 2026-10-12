@@ -18,7 +18,7 @@ interfaz web.
 
 - [Instalación](docs/instalacion.md) · [Arquitectura](docs/arquitectura.md) · [Modos](docs/modos.md)
 - [Diagnóstico](docs/diagnostico.md) · [Acciones](docs/acciones.md) · [Consola Tron](docs/consola-tron.md)
-- [Seguridad y privacidad](docs/seguridad-y-privacidad.md) · [Capturas](docs/capturas.md)
+- [Seguridad y privacidad](docs/seguridad-y-privacidad.md) · [Actualizaciones](docs/actualizaciones.md) · [Capturas](docs/capturas.md)
 - [FAQ](docs/faq.md) · [Desarrollo](docs/desarrollo.md) · [Roadmap](docs/roadmap.md)
 
 ## Instalar en un comando
@@ -207,6 +207,7 @@ jmike serve      # monitor con API local, web y bandeja
 jmike config     # asistente de configuracion
 jmike ask "como veo los procesos activos en Windows?"
 jmike analyze .\notas.txt
+jmike update     # busca una version nueva y ofrece actualizar (--check)
 ```
 
 Opciones globales: `--model` y `--workspace` sobrescriben `JUDGMAN_MODEL` y
@@ -233,6 +234,7 @@ Comandos dentro del chat:
 | `/firewall` | Estado del firewall. |
 | `/hosts` | Archivo `hosts`, DNS y proxy. |
 | `/apply <n>` | Ejecuta una accion propuesta (`/apply all` para todas). |
+| `/update` | Busca una version nueva y ofrece actualizar (`/update --run`). |
 | `/snapshot` | Datos basicos del sistema que se enviarian. |
 | `/serve` | Inicia el monitor web en segundo plano. |
 | `/settings` | Reconfigura la API key, el modelo o el workspace. |
@@ -306,6 +308,21 @@ interfaz antes de preguntar.
 - No se incluyen usuario, hostname, seriales, direcciones IP ni rutas absolutas.
 - Ajusta el comportamiento con `JUDGMAN_ENABLE_SYSTEM_INFO` (por defecto `true`),
   `JUDGMAN_MAX_QUESTION_CHARS` (2000) y `JUDGMAN_PATH_TOOLS_LIMIT` (40).
+
+## Actualizaciones
+
+JudgeMan-Mike se instala desde GitHub, asi que puede avisarte cuando hay una
+version nueva y actualizarse por ti, **solo con tu confirmacion**. Lee la ultima
+version del repositorio (cacheada 24 h y silenciosa si no hay red) y, si hay una
+nueva, lo indica al arrancar.
+
+- En el chat: `/update` comprueba y `/update --run` actualiza (pide `y/N`).
+- En la terminal: `jmike update` (o `jmike update --check`).
+- Reinstala con `pipx` o `pip` segun como este instalado; sin shell.
+- Desactiva la comprobacion con `JUDGMAN_CHECK_UPDATES=false`; el modo
+  desatendido es opt-in con `JUDGMAN_AUTO_UPDATE=true`.
+
+Detalles en [Actualizaciones](docs/actualizaciones.md).
 
 ## Pruebas
 

@@ -38,6 +38,8 @@ class Settings(BaseSettings):
         description="El servidor solo puede enlazarse a localhost IPv4.",
     )
     port: int = Field(default=8765, ge=1024, le=65535)
+    check_updates: bool = True
+    auto_update: bool = False
 
     @field_validator("model")
     @classmethod

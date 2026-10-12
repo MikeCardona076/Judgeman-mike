@@ -54,11 +54,21 @@ lo marca como "no disponible".
 
 ## ¿Cómo actualizo?
 
-Reinstalando desde el repositorio:
+JudgeMan-Mike te avisa cuando hay una versión nueva. Desde el chat usa `/update`
+(comprueba) o `/update --run` (actualiza tras confirmar); desde la terminal,
+`jmike update` o `jmike update --check`. También puedes reinstalar a mano:
 
 ```powershell
 pipx install --force "git+https://github.com/MikeCardona076/Judgeman-mike.git"
 ```
+
+Ver [Actualizaciones](actualizaciones.md).
+
+## ¿Se actualiza sola?
+
+Solo si lo activas con `JUDGMAN_AUTO_UPDATE=true`. Por defecto **avisa y pide
+confirmación**: nada se ejecuta sin tu `y`. La comprobación se puede desactivar
+con `JUDGMAN_CHECK_UPDATES=false`.
 
 ## La consola ocupa toda la pantalla, ¿puedo evitarlo?
 

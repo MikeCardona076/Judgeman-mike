@@ -36,12 +36,12 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.text import Text
 
-from judgman.cli import execute_command
+from judgman import updates
+from judgman.cli import actions_table, execute_command, update_panel
 from judgman.core.actions import ActionRunner, ProposedAction
 from judgman.core.chat import ChatSession
 from judgman.core.metrics import MetricsSampler
 from judgman.paths import user_audit_path, user_history_path
-from judgman.cli import actions_table, execute_command
 from judgman.theme import (
     BANNER,
     COMMAND_HELP,
@@ -135,9 +135,11 @@ class TronConsole:
         fallback_width: int = 80,
         fallback_height: int = 24,
         history_path: Path | None = None,
+        notice: object | None = None,
     ) -> None:
         self.session = session
         self._history_path = history_path
+        self._notice = notice
         self._highlighter = make_highlighter()
         self._sampler = MetricsSampler(workspace=session.workspace)
         self._metrics = self._sampler.sample(force=True)
@@ -154,6 +156,7 @@ class TronConsole:
         self._app: Application | None = None
         self._fallback_size = (fallback_width, fallback_height)
         self._pending_actions: list[ProposedAction] = []
+        self._pending_update = False
 
         self.input_buffer = Buffer(
             multiline=True,
@@ -320,7 +323,7 @@ class TronConsole:
             ("class:header.dim", "\u2500" * width),
             ("", "\n"),
         ]
-        left = "\u259a JUDGMAN MIKE  ::  CONSOLA TRON"
+        left = "\u259a JudgeMan-Mike  ::  CONSOLA TRON"
         right = f"[{self.session.mode.upper()}]  {datetime.now().strftime('%H:%M:%S')}"
         gap = width - len(left) - len(right)
         if gap < 1:
@@ -455,6 +458,9 @@ class TronConsole:
     def _on_accept(self, buffer: Buffer) -> None:
         text = buffer.text.strip()
         buffer.reset()
+        if self._pending_update:
+            self._resolve_update(text)
+            return
         if self._pending_actions:
             self._resolve_confirmation(text)
             return
@@ -464,6 +470,39 @@ class TronConsole:
             self._handle_command(text)
             return
         self._start_reply(text)
+
+    def _resolve_update(self, text: str) -> None:
+        self._pending_update = False
+        if text.casefold() not in ("y", "yes", "s", "si", "sí"):
+            self._append(
+                self._render(Text("Actualizacion cancelada.", style="jmike.dim"))
+            )
+            self._touch()
+            return
+        self._append(
+            self._render(
+                Text("Actualizando... esto puede tardar.", style="jmike.dim")
+            )
+        )
+        self._notify("actualizando...")
+        self._touch()
+
+        def work() -> None:
+            ok, message = updates.perform_update()
+            if ok:
+                note = Text(
+                    "Actualizado. Reinicia jmike para usar la nueva version.",
+                    style="jmike.ok",
+                )
+            else:
+                note = Text(f"No se pudo actualizar: {message}", style="jmike.err")
+            self._append(self._render(note))
+            self._notify("actualizacion finalizada")
+            self._touch()
+
+        threading.Thread(
+            target=work, name="judgman-tui-update", daemon=True
+        ).start()
 
     def _resolve_confirmation(self, text: str) -> None:
         action = self._pending_actions.pop(0)
@@ -517,6 +556,18 @@ class TronConsole:
         elif outcome.apply_actions:
             self._pending_actions = list(outcome.apply_actions)
             self._prompt_next_action()
+        elif outcome.update_run:
+            info = updates.check_for_update(force=True)
+            self._append(self._render(update_panel(info)))
+            if info.available:
+                self._pending_update = True
+                self._append(
+                    self._render(
+                        Text("Actualizar ahora? [y/N]", style="jmike.warn")
+                    )
+                )
+            else:
+                self._notify("sin actualizaciones")
         elif not outcome.quit:
             with self._lock:
                 self._scroll = 0
@@ -603,6 +654,8 @@ class TronConsole:
         if self._app is None:
             self._app = self._create_application()
         self._append(self._render(Text(BANNER, style="jmike.accent")))
+        if self._notice:
+            self._append(self._render(self._notice))
         self._last_metrics_at = 0.0
         self._metrics = self._sampler.sample(force=True)
         ticker = threading.Thread(
@@ -615,6 +668,10 @@ class TronConsole:
             self._stop.set()
 
 
-def run_tui(session: ChatSession, console: Console | None = None) -> None:
+def run_tui(
+    session: ChatSession,
+    console: Console | None = None,
+    notice: object | None = None,
+) -> None:
     """Arranca la consola Tron a pantalla completa."""
-    TronConsole(session).run()
+    TronConsole(session, notice=notice).run()

@@ -7,12 +7,14 @@ Subcomandos:
     jmike config     Reconfigura el proveedor y el workspace.
     jmike ask Q...   Responde una pregunta sobre el sistema (sin chat).
     jmike analyze R  Analiza un archivo del workspace.
+    jmike update     Busca una version nueva y ofrece actualizarla (--check).
 """
 
 import argparse
 import re
 import subprocess
 import sys
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -35,6 +37,7 @@ from judgman.core.analyzer import Analyzer
 from judgman.core.chat import MODES, ChatSession
 from judgman.core.diagnostics import check_port, render_bundle
 from judgman.core.files import FileSkipped
+from judgman import updates
 from judgman.onboarding import run_onboarding
 from judgman.paths import user_audit_path
 from judgman.theme import BANNER, COMMAND_HELP, make_console, prompt_style
@@ -69,6 +72,15 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("chat", help="Abre la consola interactiva (por defecto).")
     subparsers.add_parser("serve", help="Inicia monitor, API local y bandeja.")
     subparsers.add_parser("config", help="Reconfigura el proveedor y el workspace.")
+
+    update = subparsers.add_parser(
+        "update", help="Busca una version nueva del repositorio y actualiza."
+    )
+    update.add_argument(
+        "--check",
+        action="store_true",
+        help="Solo comprueba si hay una version nueva; no actualiza.",
+    )
 
     ask = subparsers.add_parser("ask", help="Pregunta puntual sobre el sistema.")
     ask.add_argument("question", nargs="+", help="Pregunta a responder.")
@@ -446,6 +458,7 @@ class CommandOutcome:
     clear_screen: bool = False
     reply: tuple[str, str | None] | None = None
     apply_actions: list[ProposedAction] = field(default_factory=list)
+    update_run: bool = False
 
 
 def _select_actions(
@@ -471,6 +484,75 @@ def _select_actions(
     if not selected:
         return [], f"Seleccion invalida: {', '.join(invalid) or argument}"
     return selected, ""
+
+
+def update_panel(info: updates.UpdateInfo) -> Panel:
+    """Panel con el estado de la version y como actualizar."""
+    if info.latest is None:
+        body = (
+            f"Version actual: {info.current}\n"
+            f"{info.error or 'No se pudo comprobar la ultima version.'}"
+        )
+        border = "jmike.warn"
+    elif info.available:
+        body = (
+            f"Version actual: {info.current}\n"
+            f"Ultima version: {info.latest}\n\n"
+            "Hay una version nueva. Ejecuta /update --run para actualizar.\n"
+            f"Comando: {updates.update_command_text()}"
+        )
+        border = "jmike.accent"
+    else:
+        body = f"Version actual: {info.current}\nEstas en la ultima version."
+        border = "jmike.accent"
+    return Panel(Text(body), title="Actualizaciones", border_style=border)
+
+
+def run_update(console: Console) -> None:
+    """Comprueba (forzando red) y actualiza solo tras confirmacion explicita."""
+    info = updates.check_for_update(force=True)
+    console.print(update_panel(info))
+    if not info.available:
+        return
+    console.print(f"[jmike.warn]Se reinstalara desde[/jmike.warn] {updates.GIT_URL}")
+    try:
+        answer = input("Actualizar ahora? [y/N]: ").strip().casefold()
+    except (EOFError, KeyboardInterrupt):
+        console.print("")
+        return
+    if answer not in ("y", "yes", "s", "si", "sí"):
+        console.print("[jmike.dim]Actualizacion cancelada.[/jmike.dim]")
+        return
+    console.print("[jmike.dim]Actualizando... esto puede tardar.[/jmike.dim]")
+    ok, message = updates.perform_update()
+    if ok:
+        console.print(
+            "[jmike.ok]Actualizado. Reinicia jmike para usar la nueva "
+            "version.[/jmike.ok]"
+        )
+    else:
+        console.print(f"[jmike.err]No se pudo actualizar:[/jmike.err] {message}")
+
+
+def startup_update_notice(settings: Settings) -> str | None:
+    """Aviso de version nueva usando la cache y refresco en segundo plano."""
+    if not settings.check_updates:
+        return None
+    info = updates.check_for_update(allow_network=False)
+    threading.Thread(target=updates.refresh_cache, daemon=True).start()
+    if settings.auto_update and info.available:
+        ok, _ = updates.perform_update()
+        if ok:
+            return (
+                f"[jmike.warn]Actualizado a {info.latest}. Reinicia jmike para "
+                "usarlo.[/jmike.warn]"
+            )
+    if not info.available:
+        return None
+    return (
+        f"[jmike.warn]Nueva version {info.latest} disponible "
+        f"(tienes {info.current}). Usa /update para actualizar.[/jmike.warn]"
+    )
 
 
 def execute_command(session: ChatSession, command: str) -> CommandOutcome:
@@ -537,6 +619,10 @@ def execute_command(session: ChatSession, command: str) -> CommandOutcome:
         if error:
             return CommandOutcome([f"[jmike.warn]{error}[/jmike.warn]"])
         return CommandOutcome(apply_actions=selected)
+    if name == "/update":
+        if argument.strip().lower() in ("--run", "run", "yes", "y", "ahora"):
+            return CommandOutcome(update_run=True)
+        return CommandOutcome([update_panel(updates.check_for_update())])
     if name == "/serve":
         return CommandOutcome([launch_serve()])
     if name == "/settings":
@@ -611,6 +697,8 @@ def handle_command(
         run_reply(console, session, text, mode=mode)
     if outcome.apply_actions:
         apply_actions(console, session, outcome.apply_actions)
+    if outcome.update_run:
+        run_update(console)
     return not outcome.quit
 
 
@@ -710,12 +798,15 @@ def run_plain_chat(
     session: ChatSession,
     console: Console,
     prompt_session: PromptSession | _PlainPrompt,
+    notice: str | None = None,
 ) -> None:
     """Consola simple en linea (sin TUI, en tests y con --plain)."""
     if console.is_terminal:
         console.clear()
     console.print(BANNER, style="jmike.accent")
     print_session(console, session)
+    if notice:
+        console.print(notice)
 
     while True:
         try:
@@ -745,6 +836,7 @@ def run_chat(
     console: Console | None = None,
     prompt_session: PromptSession | _PlainPrompt | None = None,
     force_plain: bool = False,
+    notice: str | None = None,
 ) -> None:
     console = console or make_console()
 
@@ -760,12 +852,12 @@ def run_chat(
         except ImportError:  # pragma: no cover - entorno sin prompt_toolkit
             run_tui = None  # type: ignore[assignment]
         if run_tui is not None:
-            run_tui(session, console)
+            run_tui(session, console, notice=notice)
             return
 
     if prompt_session is None:
         prompt_session = _default_prompt_session(session)
-    run_plain_chat(session, console, prompt_session)
+    run_plain_chat(session, console, prompt_session, notice=notice)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -776,6 +868,12 @@ def main(argv: list[str] | None = None) -> None:
     command = args.command or "chat"
     if command == "config":
         run_onboarding(console)
+        return
+    if command == "update":
+        if args.check:
+            console.print(update_panel(updates.check_for_update(force=True)))
+        else:
+            run_update(console)
         return
 
     try:
@@ -807,7 +905,8 @@ def main(argv: list[str] | None = None) -> None:
         elif command == "analyze":
             analyze_file(console, session, str(args.path))
         else:
-            run_chat(session, console, force_plain=args.plain)
+            notice = startup_update_notice(settings)
+            run_chat(session, console, force_plain=args.plain, notice=notice)
     except KeyboardInterrupt:  # pragma: no cover - interaccion de usuario
         console.print("\n[jmike.dim]Hasta luego.[/jmike.dim]")
 

@@ -70,6 +70,7 @@ COMMAND_HELP: tuple[tuple[str, str], ...] = (
     ("/firewall", "Estado del firewall."),
     ("/hosts", "Archivo hosts, DNS y proxy."),
     ("/apply <n>", "Ejecuta una accion propuesta (pide confirmacion)."),
+    ("/update", "Busca una version nueva y ofrece actualizar."),
     ("/pro", "Funciones Pro (próximamente, no disponible en esta versión)."),
     ("/snapshot", "Datos basicos del sistema que se enviarian."),
     ("/serve", "Inicia el monitor web en segundo plano."),

@@ -16,6 +16,7 @@ from judgman.cli import (
 )
 from judgman.core.chat import ChatSession
 from judgman.theme import THEME
+from judgman.updates import UpdateInfo
 
 
 class FakeAnalyzer:
@@ -275,6 +276,64 @@ def test_handle_command_pro_lists_roadmap(tmp_path: Path) -> None:
     output = console.file.getvalue()
     assert "Próximamente" in output or "Proximamente" in output
     assert "No disponible" in output
+
+
+def test_parser_update_check_flag() -> None:
+    args = build_parser().parse_args(["update", "--check"])
+
+    assert args.command == "update"
+    assert args.check is True
+
+
+def test_handle_command_update_reports_new_version(tmp_path: Path, monkeypatch) -> None:
+    import judgman.updates as updates
+
+    monkeypatch.setattr(
+        updates,
+        "check_for_update",
+        lambda *a, **k: UpdateInfo("0.1.0", "0.2.0", True),
+    )
+    console = make_console()
+    session = make_session(tmp_path)
+
+    handle_command(console, session, "/update")
+
+    output = console.file.getvalue()
+    assert "0.2.0" in output
+    assert "/update --run" in output
+
+
+def test_handle_command_update_up_to_date(tmp_path: Path, monkeypatch) -> None:
+    import judgman.updates as updates
+
+    monkeypatch.setattr(
+        updates,
+        "check_for_update",
+        lambda *a, **k: UpdateInfo("0.1.0", "0.1.0", False),
+    )
+    console = make_console()
+    session = make_session(tmp_path)
+
+    handle_command(console, session, "/update")
+
+    assert "ultima version" in console.file.getvalue().lower()
+
+
+def test_handle_command_update_run_can_cancel(tmp_path: Path, monkeypatch) -> None:
+    import judgman.updates as updates
+
+    monkeypatch.setattr(
+        updates,
+        "check_for_update",
+        lambda *a, **k: UpdateInfo("0.1.0", "0.2.0", True),
+    )
+    monkeypatch.setattr("builtins.input", lambda *a, **k: "n")
+    console = make_console()
+    session = make_session(tmp_path)
+
+    handle_command(console, session, "/update --run")
+
+    assert "cancelada" in console.file.getvalue().lower()
 
 
 def test_default_prompt_session_falls_back_when_not_tty(monkeypatch) -> None:
